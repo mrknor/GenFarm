@@ -15,17 +15,23 @@ namespace GenFarm.Controllers
         }
 
         [HttpPost("generate")]
-        public IActionResult GenerateBlog([FromBody] string seoPhrase)
+        public IActionResult GenerateBlog([FromBody] BlogRequest request)
         {
-            if (string.IsNullOrWhiteSpace(seoPhrase))
+            if (string.IsNullOrWhiteSpace(request.SEOPhrase))
             {
                 return BadRequest("SEO phrase is required.");
             }
 
-            var task = new AgentTask { TaskType = "SEOKeyword", Payload = seoPhrase };
+            var task = new AgentTask { TaskType = "SEOKeyword", Payload = request.SEOPhrase };
             _messageQueue.SendMessage(SerializeTask(task));
             return Ok("Blog generation initiated.");
         }
+
+        public class BlogRequest
+        {
+            public string SEOPhrase { get; set; }
+        }
+
 
         [HttpGet("status")]
         public IActionResult GetStatus()

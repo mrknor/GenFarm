@@ -11,9 +11,9 @@ namespace GenFarm.Services
         private readonly HttpClient _httpClient; // HTTP client for API calls
         private readonly string _openAIApiKey; // OpenAI API key
 
-        public HeaderGenerationAgent(HttpClient httpClient, string openAIApiKey)
+        public HeaderGenerationAgent(IHttpClientFactory httpClientFactory, string openAIApiKey)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient();
             _openAIApiKey = openAIApiKey;
         }
 

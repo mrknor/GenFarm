@@ -34,7 +34,7 @@ export class BlogGeneration extends Component {
         try {
             console.log(`Sending POST request to /api/blog/generate with SEO phrase: ${seoPhrase}`); // Log API call
             const response = await axios.post('/api/blog/generate', {
-                seoPhrase,
+                seoPhrase: this.state.seoPhrase,
             });
 
             console.log('API call successful'); // Log successful API call

@@ -78,5 +78,10 @@ namespace GenFarm.Infrastructure
             _channel.Close();
             _connection.Close();
         }
+
+        public void PurgeQueue()
+        {
+            _channel.QueuePurge("GenFarmQueue");
+        }
     }
 }

@@ -71,5 +71,9 @@ namespace GenFarm
         public bool IsSuccessful { get; set; }
     }
 
-
+    public class ApiSettings
+    {
+        public string BaseURL { get; set; }
+        public string ApiKey { get; set; }
+    }
 }

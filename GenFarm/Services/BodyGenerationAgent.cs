@@ -10,9 +10,9 @@ namespace GenFarm.Services
         private readonly HttpClient _httpClient;
         private readonly string _openAIApiKey;
 
-        public BodyGenerationAgent(HttpClient httpClient, string openAIApiKey)
+        public BodyGenerationAgent(IHttpClientFactory httpClientFactory, string openAIApiKey)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient();
             _openAIApiKey = openAIApiKey;
         }
 

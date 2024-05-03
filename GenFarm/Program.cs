@@ -1,19 +1,42 @@
+using GenFarm;
+using GenFarm.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Load configuration
+var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>();
 
+
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
-// Register MessageQueue as a singleton
-builder.Services.AddSingleton<GenFarm.Infrastructure.MessageQueue>();
+// Register the IHttpClientFactory
+builder.Services.AddHttpClient();
 
+// Register your services with configuration
+builder.Services.AddSingleton<GenFarm.Infrastructure.MessageQueue>();
+builder.Services.AddSingleton<GenFarm.Infrastructure.TaskOrchestrator>();
+builder.Services.AddSingleton<GenFarm.Services.SEOKeywordAgent>();
+builder.Services.AddSingleton<GenFarm.Services.HeaderGenerationAgent>(provider =>
+    new HeaderGenerationAgent(provider.GetRequiredService<IHttpClientFactory>(), apiSettings.ApiKey));
+builder.Services.AddSingleton<GenFarm.Services.BodyGenerationAgent>(provider =>
+    new BodyGenerationAgent(provider.GetRequiredService<IHttpClientFactory>(), apiSettings.ApiKey));
+builder.Services.AddSingleton<GenFarm.Services.EditorAgent>();
+builder.Services.AddSingleton<GenFarm.Services.SEOOptimizationAgent>();
+builder.Services.AddSingleton<GenFarm.Services.DeploymentAgent>();
 
 var app = builder.Build();
+
+// Manually resolve the MessageQueue to force its initialization
+var messageQueue = app.Services.GetRequiredService<GenFarm.Infrastructure.MessageQueue>();
+messageQueue.PurgeQueue();
+var orchestrator = app.Services.GetRequiredService<GenFarm.Infrastructure.TaskOrchestrator>();
+orchestrator.StartOrchestration();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -21,10 +44,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseEndpoints(endpoints => {
+app.UseEndpoints(endpoints =>
+{
     endpoints.MapControllers(); // Ensure controllers are mapped
 });
-
 
 app.MapControllerRoute(
     name: "default",
