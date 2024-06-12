@@ -76,4 +76,15 @@ namespace GenFarm
         public string BaseURL { get; set; }
         public string ApiKey { get; set; }
     }
+
+    public class HeaderPrompt
+    {
+        public string Header { get; set; }
+        public string Prompt { get; set; }
+    }
+
+    public class BlogRequest
+    {
+        public string SEOPhrase { get; set; }
+    }
 }

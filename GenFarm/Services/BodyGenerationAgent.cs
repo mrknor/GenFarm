@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GenFarm.Common;
 using Newtonsoft.Json;
 
 namespace GenFarm.Services
@@ -8,42 +9,27 @@ namespace GenFarm.Services
     public class BodyGenerationAgent
     {
         private readonly HttpClient _httpClient;
-        private readonly string _openAIApiKey;
+        private readonly OpenAIClient _openAIClient;
 
-        public BodyGenerationAgent(IHttpClientFactory httpClientFactory, string openAIApiKey)
+        public BodyGenerationAgent(
+            IHttpClientFactory httpClientFactory,
+            OpenAIClient openAIClient
+            )
         {
             _httpClient = httpClientFactory.CreateClient();
-            _openAIApiKey = openAIApiKey;
+            _openAIClient = openAIClient;
         }
 
-        public async Task<string> GenerateBodyContent(string subHeader)
+        public async Task<string> GenerateBodyContent(string header, string prompt)
         {
-            try
-            {
-                // Prepare the request data for OpenAI API
-                var requestData = new
-                {
-                    prompt = $"Generate detailed content for: {subHeader}",
-                    max_tokens = 250 // Adjust based on desired length
-                };
+            var detailedPrompt = $"Write a detailed blog section for the header '{header}'. Focus on: {prompt}";
+            var requestMessage = _openAIClient.CreateOpenAIRequest(detailedPrompt, maxTokens: 300);  // Increased token limit for more depth
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/completions")
-                {
-                    Content = new StringContent(JsonConvert.SerializeObject(requestData))
-                };
-                requestMessage.Headers.Add("Authorization", $"Bearer {_openAIApiKey}");
+            var response = await _httpClient.SendAsync(requestMessage);
+            response.EnsureSuccessStatusCode();
 
-                var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
-
-                var responseBody = await response.Content.ReadAsStringAsync();
-                return responseBody; // Extracted body content
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error generating body content: {ex.Message}");
-                throw;
-            }
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
     }
 }

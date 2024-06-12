@@ -87,14 +87,22 @@ namespace GenFarm.Infrastructure
 
         private async Task HandleHeaderGenerationTask(string payload)
         {
-            var subHeaders = await _headerGenerationAgent.GenerateSubHeaders(payload);
+            var headersWithPrompts = await _headerGenerationAgent.GenerateSubHeaders(payload);
 
-            foreach (var subHeader in subHeaders)
+            foreach (var entry in headersWithPrompts)
             {
+                var headerPrompt = new HeaderPrompt
+                {
+                    Header = entry.Key,  // The sub-header text
+                    Prompt = entry.Value  // The associated prompt for body generation
+                };
+
+                var serializedHeaderPrompt = JsonSerializer.Serialize(headerPrompt);
+
                 var newTask = new AgentTask
                 {
                     TaskType = "GenerateBodyContent",
-                    Payload = subHeader
+                    Payload = serializedHeaderPrompt  // Pass both header and prompt serialized together
                 };
                 _messageQueue.SendMessage(SerializeTask(newTask));
             }
@@ -102,7 +110,8 @@ namespace GenFarm.Infrastructure
 
         private async Task HandleBodyGenerationTask(string payload)
         {
-            var bodyContent = await _bodyGenerationAgent.GenerateBodyContent(payload);
+            var headerPrompt = JsonSerializer.Deserialize<HeaderPrompt>(payload);
+            var bodyContent = await _bodyGenerationAgent.GenerateBodyContent(headerPrompt.Header, headerPrompt.Prompt);
 
             var newTask = new AgentTask
             {
@@ -111,6 +120,7 @@ namespace GenFarm.Infrastructure
             };
             _messageQueue.SendMessage(SerializeTask(newTask));
         }
+
 
         private async Task HandleEditorTask(string payload)
         {

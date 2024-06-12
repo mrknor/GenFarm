@@ -27,10 +27,7 @@ namespace GenFarm.Controllers
             return Ok("Blog generation initiated.");
         }
 
-        public class BlogRequest
-        {
-            public string SEOPhrase { get; set; }
-        }
+
 
 
         [HttpGet("status")]
